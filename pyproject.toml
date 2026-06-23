@@ -1,0 +1,23 @@
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+exclude = ["infra/", ".venv/"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+strict = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+markers = [
+    "unit: fast tests with mocks, no external deps",
+    "integration: requires GCS/BQ dev project",
+    "e2e: full pipeline end-to-end",
+]
+
+[tool.coverage.run]
+source = ["producers", "pipelines"]
+omit = ["tests/*", "infra/*"]

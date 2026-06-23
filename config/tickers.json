@@ -1,0 +1,22 @@
+[
+  {"ticker": "RELIANCE.NS", "name": "Reliance Industries",       "sector": "Energy",      "exchange": "NSE"},
+  {"ticker": "TCS.NS",      "name": "Tata Consultancy Services", "sector": "IT",          "exchange": "NSE"},
+  {"ticker": "HDFCBANK.NS", "name": "HDFC Bank",                 "sector": "Banking",     "exchange": "NSE"},
+  {"ticker": "INFY.NS",     "name": "Infosys",                   "sector": "IT",          "exchange": "NSE"},
+  {"ticker": "ICICIBANK.NS","name": "ICICI Bank",                "sector": "Banking",     "exchange": "NSE"},
+  {"ticker": "HINDUNILVR.NS","name":"Hindustan Unilever",        "sector": "FMCG",        "exchange": "NSE"},
+  {"ticker": "SBIN.NS",     "name": "State Bank of India",       "sector": "Banking",     "exchange": "NSE"},
+  {"ticker": "BHARTIARTL.NS","name":"Bharti Airtel",             "sector": "Telecom",     "exchange": "NSE"},
+  {"ticker": "ITC.NS",      "name": "ITC Limited",               "sector": "FMCG",        "exchange": "NSE"},
+  {"ticker": "KOTAKBANK.NS","name": "Kotak Mahindra Bank",       "sector": "Banking",     "exchange": "NSE"},
+  {"ticker": "AAPL",        "name": "Apple Inc",                 "sector": "Technology",  "exchange": "NASDAQ"},
+  {"ticker": "MSFT",        "name": "Microsoft Corp",            "sector": "Technology",  "exchange": "NASDAQ"},
+  {"ticker": "GOOGL",       "name": "Alphabet Inc",              "sector": "Technology",  "exchange": "NASDAQ"},
+  {"ticker": "AMZN",        "name": "Amazon.com Inc",            "sector": "Consumer",    "exchange": "NASDAQ"},
+  {"ticker": "NVDA",        "name": "NVIDIA Corp",               "sector": "Technology",  "exchange": "NASDAQ"},
+  {"ticker": "META",        "name": "Meta Platforms",            "sector": "Technology",  "exchange": "NASDAQ"},
+  {"ticker": "TSLA",        "name": "Tesla Inc",                 "sector": "Automotive",  "exchange": "NASDAQ"},
+  {"ticker": "JPM",         "name": "JPMorgan Chase",            "sector": "Banking",     "exchange": "NYSE"},
+  {"ticker": "V",           "name": "Visa Inc",                  "sector": "Payments",    "exchange": "NYSE"},
+  {"ticker": "JNJ",         "name": "Johnson & Johnson",         "sector": "Healthcare",  "exchange": "NYSE"}
+]

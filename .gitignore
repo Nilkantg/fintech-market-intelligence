@@ -1,0 +1,37 @@
+# Secrets — NEVER commit these
+.env
+*.env
+*_credentials.json
+service_account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Spark / Dataproc
+spark-warehouse/
+derby.log
+metastore_db/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# GE
+uncommitted/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
