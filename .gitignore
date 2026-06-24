@@ -1,10 +1,12 @@
-# Secrets — NEVER commit these
+# ── Secrets — NEVER commit ────────────────────────────────────
 .env
 *.env
 *_credentials.json
 service_account*.json
+terraform.tfvars
+*.tfvars
 
-# Python
+# ── Python ────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -12,26 +14,34 @@ dist/
 build/
 .venv/
 venv/
+*.so
 
-# Spark / Dataproc
+# ── Spark / Dataproc ──────────────────────────────────────────
 spark-warehouse/
 derby.log
 metastore_db/
+checkpoint/
 
-# Terraform
+# ── Terraform ─────────────────────────────────────────────────
 .terraform/
 *.tfstate
 *.tfstate.backup
 .terraform.lock.hcl
+override.tf
+override.tf.json
 
-# GE
+# ── Great Expectations ────────────────────────────────────────
 uncommitted/
+.ge_store_backend_defaults
 
-# IDE
+# ── IDE ───────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
-
-# OS
+*.swo
 .DS_Store
 Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+logs/
