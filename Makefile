@@ -1,60 +1,81 @@
-.PHONY: help setup test lint deploy-producers submit-bronze submit-silver
+.PHONY: help setup lint typecheck test-unit test-integration \
+        build-producers deploy-producers \
+        submit-bronze submit-silver tf-init tf-plan tf-apply
+
+# ── Read .env if it exists ─────────────────────────────────────
+-include .env
+export
 
 PROJECT_ID   ?= fintech-market-intel
 REGION       ?= us-central1
-REPO         ?= $(REGION)-docker.pkg.dev/$(PROJECT_ID)/fintech-repo
-BRONZE_BUCKET?= $(PROJECT_ID)-bronze
-STAGING      ?= $(PROJECT_ID)-dataproc-staging
+IMAGE_REPO    = $(REGION)-docker.pkg.dev/$(PROJECT_ID)/fintech-repo
 
-help:
-	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+help: ## Show available commands
+	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | \
+	  awk 'BEGIN {FS=":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
 
-setup: ## Run one-time GCP project setup
-	bash scripts/setup_gcp.sh
+# ── Local dev ─────────────────────────────────────────────────
+setup: ## Install dev dependencies
+	pip install ruff mypy pytest pytest-cov \
+	  pyspark==3.5.0 confluent-kafka finnhub-python \
+	  google-cloud-bigquery google-cloud-storage \
+	  google-cloud-secret-manager great-expectations
 
-kafka-topics: ## Create Confluent Kafka topics
-	bash scripts/setup_kafka_topics.sh
+lint: ## Lint with ruff
+	ruff check producers/ pipelines/ dags/ config/ tests/
 
-lint: ## Run ruff linter
-	ruff check producers/ pipelines/ dags/ tests/
+typecheck: ## Type check with mypy
+	mypy producers/ pipelines/ config/ --ignore-missing-imports
 
-typecheck: ## Run mypy type checker
-	mypy producers/ pipelines/ --ignore-missing-imports
-
-test-unit: ## Run unit tests only (no GCP required)
+test-unit: ## Run unit tests (no GCP required)
 	pytest tests/unit/ -m unit -v
 
-test-integration: ## Run integration tests (requires dev GCP project)
+test-integration: ## Run integration tests (requires GCP)
 	pytest tests/integration/ -m integration -v
 
 test-all: ## Run all tests
-	pytest tests/ -v
+	pytest tests/ -v --cov=pipelines --cov=producers --cov-report=term-missing
 
-build-producers: ## Build all producer Docker images
-	docker build -t $(REPO)/price-producer:latest -f infra/docker/price_producer/Dockerfile producers/price_producer/
-	docker build -t $(REPO)/news-producer:latest   -f infra/docker/news_producer/Dockerfile    producers/news_producer/
-	docker push $(REPO)/price-producer:latest
-	docker push $(REPO)/news-producer:latest
+# ── Docker / Cloud Run ────────────────────────────────────────
+build-price-producer: ## Build price producer image
+	docker build \
+	  -t $(IMAGE_REPO)/price-producer:latest \
+	  -f infra/docker/price_producer/Dockerfile \
+	  producers/price_producer/
 
-deploy-producers: ## Deploy producers to Cloud Run
+push-price-producer: build-price-producer ## Push to Artifact Registry
+	docker push $(IMAGE_REPO)/price-producer:latest
+
+deploy-price-producer: push-price-producer ## Deploy to Cloud Run
 	gcloud run deploy price-producer \
-		--image=$(REPO)/price-producer:latest \
-		--region=$(REGION) --min-instances=1 --max-instances=1 \
-		--service-account=producer-sa@$(PROJECT_ID).iam.gserviceaccount.com \
-		--set-env-vars="GCP_PROJECT_ID=$(PROJECT_ID)" \
-		--no-allow-unauthenticated
+	  --image=$(IMAGE_REPO)/price-producer:latest \
+	  --region=$(REGION) \
+	  --service-account=producer-sa@$(PROJECT_ID).iam.gserviceaccount.com \
+	  --set-env-vars="GCP_PROJECT_ID=$(PROJECT_ID)" \
+	  --min-instances=1 --max-instances=1 \
+	  --memory=512Mi --cpu=1 \
+	  --no-allow-unauthenticated
 
-submit-bronze: ## Submit Bronze streaming job to Dataproc Serverless
-	bash scripts/submit_dataproc_job.sh bronze pipelines/bronze/kafka_to_gcs_prices.py
+# ── Dataproc jobs ─────────────────────────────────────────────
+submit-bronze: ## Submit Bronze streaming job
+	bash scripts/submit_dataproc_job.sh bronze \
+	  pipelines/bronze/kafka_to_gcs_prices.py
 
-submit-silver: ## Submit Silver batch job to Dataproc Serverless
-	bash scripts/submit_dataproc_job.sh silver pipelines/silver/gcs_to_bq_prices.py
+submit-silver: ## Submit Silver batch job
+	bash scripts/submit_dataproc_job.sh silver \
+	  pipelines/silver/gcs_to_bq_prices.py
 
-tf-init: ## Terraform init
+# ── Terraform ─────────────────────────────────────────────────
+tf-init: ## terraform init
 	cd infra/terraform && terraform init
 
-tf-plan: ## Terraform plan
-	cd infra/terraform && terraform plan -var="project_id=$(PROJECT_ID)"
+tf-plan: ## terraform plan
+	cd infra/terraform && terraform plan \
+	  -var="project_id=$(PROJECT_ID)" \
+	  -var="region=$(REGION)"
 
-tf-apply: ## Terraform apply
-	cd infra/terraform && terraform apply -var="project_id=$(PROJECT_ID)" -auto-approve
+tf-apply: ## terraform apply (auto-approve for CI)
+	cd infra/terraform && terraform apply \
+	  -var="project_id=$(PROJECT_ID)" \
+	  -var="region=$(REGION)" \
+	  -auto-approve
